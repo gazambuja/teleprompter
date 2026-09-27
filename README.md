@@ -99,7 +99,7 @@ npm run build:win    # NSIS installer
 
 Output is written to `release/<version>/`. macOS builds must run on a Mac.
 
-Releases are built by [GitHub Actions](.github/workflows/release.yml): pushing a `v*` tag builds the installers on Linux, Windows and macOS and attaches them to that tag's GitHub release. To rebuild an existing tag, run the **Release** workflow manually with the tag as input.
+Releases are built by [GitHub Actions](.github/workflows/release.yml): pushing a `v*` tag builds the installers on Linux, Windows and macOS and attaches them to that tag's GitHub release. See [RELEASING.md](RELEASING.md) for the full release checklist.
 
 The `.deb` post-install script handles Ubuntu 23.10+, where AppArmor blocks unprivileged user namespaces: it installs an AppArmor profile for the app (like Chrome and VS Code do), and falls back to the SUID sandbox if that fails.
 
