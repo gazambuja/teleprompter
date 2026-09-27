@@ -2,26 +2,34 @@ name: Release
 
 # Builds installers on each OS and attaches them to the GitHub release.
 # Runs on a pushed version tag (v1.2.3), or manually for an existing tag.
+# A manual dry run builds the branch it was started on and keeps the
+# installers as workflow artifacts instead of touching any release.
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to build and upload to (e.g. v0.1.1)'
-        required: true
+        description: 'Release tag to build and upload to (e.g. v0.1.1). Ignored on a dry run.'
+        required: false
+      dry_run:
+        description: 'Build the selected branch without uploading to a release'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 env:
   TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  DRY_RUN: ${{ github.event.inputs.dry_run == 'true' }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - name: Ensure the release exists
+        if: env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -44,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ env.TAG }}
+          ref: ${{ env.DRY_RUN == 'true' && github.sha || env.TAG }}
 
       - uses: actions/setup-node@v5
         with:
@@ -62,9 +70,46 @@ jobs:
       - name: Package
         run: npx electron-builder ${{ matrix.target }} --publish never
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false' # no code-signing certificates yet
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false' # no code-signing certificates yet; macOS is ad-hoc signed
+
+      - name: Verify macOS app
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          for dmg in release/*/*.dmg; do
+            echo "::group::$dmg"
+            mnt=$(mktemp -d)
+            hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mnt" >/dev/null
+            app="$mnt/Teleprompter.app"
+            codesign --verify --deep --strict --verbose=2 "$app"
+            codesign -dv "$app" 2>&1 | grep -E 'Signature|Identifier|flags'
+            /usr/libexec/PlistBuddy -c 'Print :NSMicrophoneUsageDescription' "$app/Contents/Info.plist"
+            # The runner is Apple Silicon: launch the arm64 build and check it stays up.
+            if [[ "$dmg" == *arm64* ]]; then
+              "$app/Contents/MacOS/Teleprompter" > launch.log 2>&1 & pid=$!
+              sleep 15
+              if ! kill -0 "$pid" 2>/dev/null; then cat launch.log; echo "app exited early"; exit 1; fi
+              kill "$pid"; wait "$pid" 2>/dev/null || true
+              echo "launched OK"
+            fi
+            hdiutil detach "$mnt" >/dev/null
+            echo "::endgroup::"
+          done
+
+      - name: Keep installers (dry run)
+        if: env.DRY_RUN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ runner.os }}
+          path: |
+            release/*/*.AppImage
+            release/*/*.deb
+            release/*/*.exe
+            release/*/*.dmg
+          retention-days: 7
 
       - name: Upload to release
+        if: env.DRY_RUN != 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

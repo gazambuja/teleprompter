@@ -28,6 +28,12 @@ mac:
     - target: dmg
       arch: [x64, arm64]
   category: public.app-category.productivity
+  # Ad-hoc signature until there is an Apple Developer certificate. An unsigned
+  # (or broken) signature makes Apple Silicon report the app as "damaged".
+  identity: '-'
+  hardenedRuntime: false
+  extendInfo:
+    NSMicrophoneUsageDescription: Teleprompter listens to your voice to follow the script and for dictation. Audio never leaves your computer.
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
 linux:
   target:
