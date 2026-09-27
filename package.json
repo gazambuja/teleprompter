@@ -1,6 +1,6 @@
 {
   "name": "teleprompter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A cross-platform teleprompter app for presentations",
   "main": "out/main/index.js",
   "author": {

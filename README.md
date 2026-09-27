@@ -21,7 +21,7 @@ Grab the installer for your platform from the [latest release](https://github.co
 The Windows and macOS builds are not code-signed yet:
 
 - **Windows:** SmartScreen may warn on first launch. Choose **More info → Run anyway**.
-- **macOS:** Gatekeeper blocks the app on first launch. Right-click it in Applications and choose **Open**. If macOS says the app "is damaged", run `xattr -cr /Applications/Teleprompter.app` once.
+- **macOS:** drag Teleprompter to Applications and open it. macOS will say it can't verify the developer: click **Done**, then go to **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to the Teleprompter message. You only need to do this once. From the Terminal, `xattr -cr /Applications/Teleprompter.app` does the same.
 
 ## Features
 

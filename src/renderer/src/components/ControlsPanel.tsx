@@ -383,7 +383,7 @@ export function ControlsPanel({
 
       <footer className="px-5 py-3 border-t border-[var(--border)]">
         <div className="flex items-center justify-between font-mono text-[10px] text-paper-muted">
-          <span>v0.1.1 · electron</span>
+          <span>v0.1.2 · electron</span>
           <span className="flex items-center gap-1.5">
             <span
               className={[
