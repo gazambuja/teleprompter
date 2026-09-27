@@ -47,6 +47,14 @@ To rebuild the installers for a tag that already exists (for example after fixin
 gh workflow run release.yml -f tag=v0.1.1
 ```
 
+## Test the build without releasing
+
+To build every platform from a branch without touching any release, run a dry run. The installers are kept as workflow artifacts for 7 days:
+
+```bash
+gh workflow run release.yml -f dry_run=true --ref main
+```
+
 ## Build locally
 
 ```bash
@@ -61,9 +69,11 @@ gh release upload v0.1.2 release/0.1.2/*.AppImage release/0.1.2/*.deb --clobber
 
 ## Code signing
 
-Windows and macOS builds are **not signed** (the workflow sets `CSC_IDENTITY_AUTO_DISCOVERY=false`). Users see a SmartScreen warning on Windows and a Gatekeeper block on macOS. The README explains how to get past both.
+Windows and macOS builds are **not signed with a certificate** (the workflow sets `CSC_IDENTITY_AUTO_DISCOVERY=false`, and `electron-builder.yml` sets `mac.identity: null`). Users see a SmartScreen warning on Windows and a Gatekeeper prompt on macOS. The README explains how to get past both.
 
-To sign, add the certificates as repository secrets and pass them to the **Package** step instead of disabling discovery:
+macOS apps **must** still be ad-hoc signed. Packaging invalidates Electron's own signature, and Apple Silicon reports an app with a broken signature as "damaged", with no way to open it. That is what happened in v0.1.1. The `afterPack` hook `build/mac-adhoc-sign.cjs` signs the app before the DMG is built. The **Verify macOS app** step in the workflow checks the signature and launches the arm64 app on the runner, and fails the build before anything is uploaded. (electron-builder 25 ignores `identity: '-'`, so don't rely on it.)
+
+To sign properly, add the certificates as repository secrets, pass them to the **Package** step, and remove `identity: null`, `hardenedRuntime: false` and the `afterPack` hook:
 
 - **macOS** (Apple Developer Program): `CSC_LINK` (base64 `.p12`), `CSC_KEY_PASSWORD`. For notarization, also `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` and `APPLE_TEAM_ID`.
 - **Windows:** `WIN_CSC_LINK`, `WIN_CSC_KEY_PASSWORD` (or a cloud signing service).
