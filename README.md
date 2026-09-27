@@ -8,6 +8,21 @@ A cross-platform desktop teleprompter for presenters and creators. It follows yo
 | --- | --- | --- |
 | ![Editor](site/assets/editor.webp) | ![Display](site/assets/display.webp) | ![Studio controls](site/assets/studio.webp) |
 
+## Download
+
+Grab the installer for your platform from the [latest release](https://github.com/gazambuja/teleprompter/releases/latest):
+
+| Platform | File |
+| --- | --- |
+| Linux | `.AppImage` (any distro) or `.deb` (Debian / Ubuntu) |
+| Windows 10 / 11 | `-win-x64.exe` installer |
+| macOS | `-mac-arm64.dmg` (Apple Silicon) or `-mac-x64.dmg` (Intel) |
+
+The Windows and macOS builds are not code-signed yet:
+
+- **Windows:** SmartScreen may warn on first launch. Choose **More info → Run anyway**.
+- **macOS:** Gatekeeper blocks the app on first launch. Right-click it in Applications and choose **Open**. If macOS says the app "is damaged", run `xattr -cr /Applications/Teleprompter.app` once.
+
 ## Features
 
 - **Three-line viewport** with a centered highlighted line and pixel-smooth, continuous scrolling (not line-by-line)
@@ -82,7 +97,9 @@ npm run build:mac    # DMG (x64 + arm64)
 npm run build:win    # NSIS installer
 ```
 
-Output is written to `release/<version>/`.
+Output is written to `release/<version>/`. macOS builds must run on a Mac.
+
+Releases are built by [GitHub Actions](.github/workflows/release.yml): pushing a `v*` tag builds the installers on Linux, Windows and macOS and attaches them to that tag's GitHub release. To rebuild an existing tag, run the **Release** workflow manually with the tag as input.
 
 The `.deb` post-install script handles Ubuntu 23.10+, where AppArmor blocks unprivileged user namespaces: it installs an AppArmor profile for the app (like Chrome and VS Code do), and falls back to the SUID sandbox if that fails.
 
