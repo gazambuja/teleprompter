@@ -436,23 +436,26 @@
             <div class="label">Linux</div>
             <h3>Linux</h3>
             <div class="req">x86_64 · Ubuntu, Debian, Fedora &amp; more</div>
-            <a class="file" href="downloads/Teleprompter-0.1.1-linux-x86_64.AppImage" download><span>AppImage</span><small>117 MB</small></a>
-            <a class="file" href="downloads/Teleprompter-0.1.1-linux-amd64.deb" download><span>.deb</span><small>79 MB</small></a>
+            <a class="file" href="https://github.com/gazambuja/teleprompter/releases/download/v0.1.1/Teleprompter-0.1.1-linux-x86_64.AppImage"><span>AppImage</span><small>117 MB</small></a>
+            <a class="file" href="https://github.com/gazambuja/teleprompter/releases/download/v0.1.1/Teleprompter-0.1.1-linux-amd64.deb"><span>.deb</span><small>78 MB</small></a>
           </div>
           <div class="dl" data-os="mac">
             <div class="label">macOS</div>
             <h3>macOS</h3>
             <div class="req">Apple silicon &amp; Intel</div>
-            <div class="soon">Installer coming soon.<br />Build it now with <code>npm run build:mac</code></div>
+            <a class="file" href="https://github.com/gazambuja/teleprompter/releases/download/v0.1.1/Teleprompter-0.1.1-mac-arm64.dmg"><span>Apple silicon</span><small>107 MB</small></a>
+            <a class="file" href="https://github.com/gazambuja/teleprompter/releases/download/v0.1.1/Teleprompter-0.1.1-mac-x64.dmg"><span>Intel</span><small>112 MB</small></a>
           </div>
           <div class="dl" data-os="win">
             <div class="label">Windows</div>
             <h3>Windows</h3>
             <div class="req">Windows 10 / 11 · x64</div>
-            <div class="soon">Installer coming soon.<br />Build it now with <code>npm run build:win</code></div>
+            <a class="file" href="https://github.com/gazambuja/teleprompter/releases/download/v0.1.1/Teleprompter-0.1.1-win-x64.exe"><span>Installer (.exe)</span><small>87 MB</small></a>
           </div>
         </div>
-        <p class="note reveal">AppImage: make it executable with <code>chmod +x Teleprompter-*.AppImage</code>, then run it. For the .deb: <code>sudo apt install ./Teleprompter-0.1.1-linux-amd64.deb</code></p>
+        <p class="note reveal"><strong>Linux:</strong> make the AppImage executable with <code>chmod +x Teleprompter-*.AppImage</code>, then run it, or install the .deb with <code>sudo apt install ./Teleprompter-0.1.1-linux-amd64.deb</code>.</p>
+        <p class="note reveal"><strong>macOS &amp; Windows:</strong> the installers aren't code-signed yet. On macOS, right-click the app in Applications and choose <em>Open</em> the first time (if it says the app is damaged, run <code>xattr -cr /Applications/Teleprompter.app</code>). On Windows, if SmartScreen warns you, choose <em>More info → Run anyway</em>.</p>
+        <p class="note reveal">All versions and source code are on <a href="https://github.com/gazambuja/teleprompter/releases">GitHub</a>.</p>
       </div>
     </section>
 
@@ -468,7 +471,7 @@
   <footer>
     <div class="wrap">
       <span>© 2026 Gustavo Azambuja · <a href="https://sandboxlabs.uk">Sandbox Labs</a></span>
-      <span><a href="mailto:support@sandboxlabs.uk">support@sandboxlabs.uk</a> · MIT License</span>
+      <span><a href="https://github.com/gazambuja/teleprompter">GitHub</a> · <a href="mailto:support@sandboxlabs.uk">support@sandboxlabs.uk</a> · MIT License</span>
     </div>
   </footer>
 

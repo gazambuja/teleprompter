@@ -70,8 +70,17 @@ To sign, add the certificates as repository secrets and pass them to the **Packa
 
 ## Landing page
 
-The landing page at [teleprompter.sandboxlabs.uk](https://teleprompter.sandboxlabs.uk) (`site/`) is deployed separately. See `deploy/`. Its Linux download links point at `site/downloads/` on that server, which is ignored by git. Update those files and links by hand, or point the links at the GitHub release assets instead:
+The landing page at [teleprompter.sandboxlabs.uk](https://teleprompter.sandboxlabs.uk) (`site/index.html`) links straight to the GitHub release assets. The URLs include the version, for example:
 
 ```
-https://github.com/gazambuja/teleprompter/releases/latest/download/Teleprompter-<v>-win-x64.exe
+https://github.com/gazambuja/teleprompter/releases/download/v0.1.1/Teleprompter-0.1.1-win-x64.exe
 ```
+
+After each release, once the workflow has finished:
+
+1. In `site/index.html`, replace the old version everywhere: the hero meta line, the "Download · v…" label, the five download URLs and the `.deb` install command.
+2. Update the file sizes shown next to each link. To list them in MB:
+   ```bash
+   gh release view v0.1.2 --json assets -q '.assets[] | "\(.name) \(.size/1000000|round) MB"'
+   ```
+3. Deploy `site/` to the web root (see `deploy/`). Only `index.html` and `assets/` are needed, because the installers are served by GitHub.
