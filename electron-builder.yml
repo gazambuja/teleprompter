@@ -9,6 +9,7 @@ files:
   - package.json
   - '!**/*.map'
   - '!**/*.d.ts'
+afterPack: build/mac-adhoc-sign.cjs
 asarUnpack:
   - resources/**
 win:
@@ -28,9 +29,9 @@ mac:
     - target: dmg
       arch: [x64, arm64]
   category: public.app-category.productivity
-  # Ad-hoc signature until there is an Apple Developer certificate. An unsigned
-  # (or broken) signature makes Apple Silicon report the app as "damaged".
-  identity: '-'
+  # No Apple Developer certificate yet: skip real signing and ad-hoc sign in
+  # build/mac-adhoc-sign.cjs instead (an unsigned app shows as "damaged").
+  identity: null
   hardenedRuntime: false
   extendInfo:
     NSMicrophoneUsageDescription: Teleprompter listens to your voice to follow the script and for dictation. Audio never leaves your computer.
