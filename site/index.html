@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teleprompter — read your script, keep your eyes on the lens</title>
+  <meta name="description" content="A quiet, cross-platform teleprompter for presenters and creators. Smooth scroll, a highlighted reading line, transparent always-on-top window and offline dictation. Free and open source." />
+  <link rel="canonical" href="https://teleprompter.sandboxlabs.uk/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://teleprompter.sandboxlabs.uk/" />
+  <meta property="og:title" content="Teleprompter — read your script, keep your eyes on the lens" />
+  <meta property="og:description" content="Smooth scroll, a highlighted reading line, a transparent always-on-top window and offline dictation. For Linux, macOS and Windows." />
+  <meta property="og:image" content="https://teleprompter.sandboxlabs.uk/assets/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0a0b0d" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0b0d'/%3E%3Crect x='7' y='9' width='18' height='2.5' rx='1.25' fill='%23f5f1ea' opacity='.3'/%3E%3Crect x='7' y='14.75' width='18' height='2.5' rx='1.25' fill='%23e4b860'/%3E%3Crect x='7' y='20.5' width='12' height='2.5' rx='1.25' fill='%23f5f1ea' opacity='.3'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink-950: #0a0b0d;
+      --ink-900: #101216;
+      --ink-850: #15171b;
+      --ink-800: #1c1f24;
+      --ink-700: #262a30;
+      --paper: #f5f1ea;
+      --paper-dim: rgba(245, 241, 234, 0.62);
+      --paper-muted: rgba(245, 241, 234, 0.34);
+      --hair: rgba(245, 241, 234, 0.08);
+      --amber: #e4b860;
+      --amber-glow: rgba(228, 184, 96, 0.18);
+      --cyan: #7dd3c0;
+      --serif: "Newsreader", Georgia, serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      --max: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--ink-950);
+      color: var(--paper);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+    .label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--amber);
+    }
+    .mono { font-family: var(--mono); }
+    kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      padding: 2px 7px;
+      border: 1px solid rgba(228, 184, 96, 0.45);
+      border-radius: 4px;
+      color: var(--amber);
+      white-space: nowrap;
+    }
+
+    /* ---------- nav ---------- */
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(10, 11, 13, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--hair);
+    }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--mono); font-size: 13px; letter-spacing: 0.3em;
+      text-transform: uppercase; text-decoration: none;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 12px var(--amber); }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.24em;
+      text-transform: uppercase; text-decoration: none; color: var(--paper-dim);
+      transition: color .2s var(--ease);
+    }
+    .nav-links a:hover { color: var(--paper); }
+    .nav-links a.cta { color: var(--amber); }
+    @media (max-width: 720px) { .nav-links a:not(.cta) { display: none; } }
+
+    /* ---------- hero ---------- */
+    .hero { position: relative; padding: 96px 0 72px; overflow: hidden; }
+    .hero::before {
+      content: ""; position: absolute; inset: -20% -10% auto -10%; height: 900px; z-index: -1;
+      background:
+        radial-gradient(50% 50% at 15% 30%, rgba(88, 60, 200, 0.28), transparent 70%),
+        radial-gradient(45% 55% at 85% 40%, rgba(12, 140, 160, 0.26), transparent 70%);
+      filter: blur(20px);
+    }
+    .hero h1 {
+      font-weight: 350;
+      font-size: clamp(44px, 7.4vw, 92px);
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 22px 0 24px;
+      max-width: 14ch;
+    }
+    .hero h1 em { font-style: italic; color: var(--amber); font-weight: 300; }
+    .lede { font-size: clamp(19px, 2.1vw, 23px); color: var(--paper-dim); max-width: 38ch; margin: 0 0 40px; font-weight: 350; }
+    .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase;
+      text-decoration: none; padding: 16px 24px; border-radius: 999px;
+      transition: transform .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .btn-primary { background: var(--amber); color: var(--ink-950); box-shadow: 0 10px 40px -10px rgba(228, 184, 96, 0.6); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 50px -10px rgba(228, 184, 96, 0.75); }
+    .btn-ghost { color: var(--paper); border: 1px solid rgba(245, 241, 234, 0.16); }
+    .btn-ghost:hover { background: rgba(245, 241, 234, 0.05); }
+    .meta { margin-top: 22px; font-family: var(--mono); font-size: 12px; color: var(--paper-muted); letter-spacing: 0.04em; }
+
+    /* ---------- live prompter demo ---------- */
+    .stage {
+      margin-top: 72px;
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(120deg, #2a1b5e 0%, #123a63 40%, #0b5566 70%, #0c2a2c 100%);
+      box-shadow: 0 40px 120px -40px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--hair);
+    }
+    .stage-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; height: 46px; background: rgba(10, 11, 13, 0.92);
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase;
+      border-bottom: 1px solid var(--hair);
+    }
+    .stage-bar .left { display: flex; gap: 12px; align-items: center; }
+    .stage-bar .muted { color: var(--paper-muted); letter-spacing: 0.04em; text-transform: none; }
+    .stage-bar .air { color: var(--amber); display: flex; align-items: center; gap: 8px; }
+    .stage-bar .air::before { content: ""; width: 0; height: 0; border-left: 8px solid var(--amber); border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+    .stage-bar.live .air::before { border: 0; width: 7px; height: 7px; border-radius: 50%; background: #ff5a4f; box-shadow: 0 0 10px #ff5a4f; animation: pulse 1.4s infinite; }
+    @keyframes pulse { 50% { opacity: .35; } }
+    .viewport {
+      --lh: 1.5em;
+      position: relative;
+      height: calc(var(--lh) * 5);
+      font-size: clamp(22px, 3.6vw, 46px);
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+              mask-image: linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+    }
+    .scroller { position: absolute; left: 0; right: 0; top: 0; padding: 0 clamp(20px, 4vw, 56px); will-change: transform; }
+    .scroller p { margin: 0; line-height: var(--lh); color: rgba(245, 241, 234, 0.3); transition: color .35s var(--ease); }
+    .scroller p.on { color: var(--amber); }
+    .scroller p.near { color: rgba(228, 184, 96, 0.55); }
+    .guide { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: linear-gradient(90deg, transparent, rgba(228,184,96,.25), transparent); pointer-events: none; }
+    .rail { position: absolute; right: 14px; top: 14%; bottom: 14%; width: 2px; background: rgba(245,241,234,.08); border-radius: 2px; }
+    .rail i { position: absolute; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 14px var(--amber); top: 0; }
+    .hint {
+      position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+      display: flex; gap: 14px; align-items: center;
+      padding: 10px 18px; border-radius: 999px; background: rgba(10, 11, 13, 0.82);
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--amber);
+      transition: opacity .3s var(--ease); pointer-events: none;
+    }
+    .stage.playing .hint { opacity: 0; }
+
+    /* ---------- sections ---------- */
+    section { padding: 110px 0; border-top: 1px solid var(--hair); }
+    .section-head { max-width: 640px; margin-bottom: 56px; }
+    h2 { font-weight: 350; font-size: clamp(34px, 4.6vw, 54px); line-height: 1.08; letter-spacing: -0.015em; margin: 16px 0 18px; }
+    h2 em { font-style: italic; color: var(--amber); font-weight: 300; }
+    .section-head p { color: var(--paper-dim); margin: 0; font-size: 20px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--hair); border: 1px solid var(--hair); border-radius: 16px; overflow: hidden; }
+    .cell { background: var(--ink-950); padding: 34px 30px 36px; }
+    .cell h3 { font-weight: 450; font-size: 23px; margin: 18px 0 10px; line-height: 1.25; }
+    .cell p { margin: 0; color: var(--paper-dim); font-size: 17px; }
+    .icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--amber-glow); color: var(--amber); }
+    .icon svg { width: 18px; height: 18px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+    /* screens */
+    .shots { display: grid; gap: 64px; }
+    .shot { display: grid; grid-template-columns: 5fr 7fr; gap: 48px; align-items: center; }
+    .shot:nth-child(even) { grid-template-columns: 7fr 5fr; }
+    .shot:nth-child(even) .shot-text { order: 2; }
+    .shot figure { margin: 0; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9), 0 0 0 1px var(--hair); }
+    .shot h3 { font-weight: 400; font-size: 30px; line-height: 1.15; margin: 14px 0 14px; }
+    .shot p { color: var(--paper-dim); margin: 0; }
+    @media (max-width: 860px) {
+      .shot, .shot:nth-child(even) { grid-template-columns: 1fr; gap: 24px; }
+      .shot:nth-child(even) .shot-text { order: 0; }
+    }
+
+    /* dictation */
+    .dictate { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .mic-card {
+      border-radius: 16px; padding: 30px; background: var(--ink-900); box-shadow: 0 0 0 1px var(--hair);
+      font-size: 24px; line-height: 1.55; min-height: 230px;
+    }
+    .mic-card .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-family: var(--mono); font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: var(--paper-muted); }
+    .mic-card .rec { color: var(--cyan); display: flex; gap: 8px; align-items: center; }
+    .bars { display: inline-flex; gap: 3px; align-items: center; height: 14px; }
+    .bars i { width: 3px; background: var(--cyan); border-radius: 2px; animation: bar 1s infinite var(--ease); }
+    .bars i:nth-child(2) { animation-delay: .15s } .bars i:nth-child(3) { animation-delay: .3s } .bars i:nth-child(4) { animation-delay: .45s }
+    @keyframes bar { 0%,100% { height: 4px } 50% { height: 14px } }
+    .typed { color: var(--paper); }
+    .partial { color: var(--cyan); opacity: .75; font-style: italic; }
+    .caret { display: inline-block; width: 2px; height: 1em; background: var(--amber); vertical-align: -0.15em; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0 } }
+    .ticks { list-style: none; padding: 0; margin: 28px 0 0; display: grid; gap: 12px; }
+    .ticks li { display: flex; gap: 14px; color: var(--paper-dim); font-size: 18px; }
+    .ticks li::before { content: ""; flex: none; margin-top: 11px; width: 14px; height: 1px; background: var(--amber); }
+    @media (max-width: 860px) { .dictate { grid-template-columns: 1fr; } }
+
+    /* hotkeys */
+    .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
+    .keys div { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hair); font-size: 18px; color: var(--paper-dim); }
+    .keys div span:last-child { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    @media (max-width: 760px) { .keys { grid-template-columns: 1fr; } }
+
+    /* download */
+    .dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .dl {
+      border-radius: 16px; padding: 30px; background: var(--ink-900); box-shadow: 0 0 0 1px var(--hair);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .dl h3 { margin: 12px 0 2px; font-weight: 450; font-size: 26px; }
+    .dl .req { font-family: var(--mono); font-size: 12px; color: var(--paper-muted); margin-bottom: 18px; }
+    .dl a.file {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      text-decoration: none; padding: 13px 16px; border-radius: 10px; margin-top: 8px;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em;
+      background: rgba(228, 184, 96, 0.1); color: var(--amber); box-shadow: inset 0 0 0 1px rgba(228,184,96,.25);
+      transition: background .2s var(--ease);
+    }
+    .dl a.file:hover { background: rgba(228, 184, 96, 0.18); }
+    .dl a.file small { color: var(--paper-muted); }
+    .dl .soon { margin-top: 8px; padding: 13px 16px; border-radius: 10px; font-family: var(--mono); font-size: 12px; color: var(--paper-muted); box-shadow: inset 0 0 0 1px var(--hair); }
+    .dl .soon code { color: var(--paper-dim); }
+    @media (max-width: 860px) { .dl-grid { grid-template-columns: 1fr; } }
+    .note { margin-top: 28px; color: var(--paper-muted); font-size: 16px; }
+    .note code { font-family: var(--mono); font-size: 13px; color: var(--paper-dim); }
+
+    /* closing */
+    .closing { text-align: center; padding: 140px 0; }
+    .closing h2 { margin: 0 auto 36px; max-width: 16ch; }
+    .closing .actions { justify-content: center; }
+
+    footer { border-top: 1px solid var(--hair); padding: 36px 0 48px; }
+    footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; font-family: var(--mono); font-size: 12px; color: var(--paper-muted); letter-spacing: .04em; }
+    footer a { text-decoration: none; color: var(--paper-dim); }
+    footer a:hover { color: var(--paper); }
+
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .bars i, .caret, .stage-bar.live .air::before { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="#top"><span class="dot"></span>Teleprompter</a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#dictation">Dictation</a>
+        <a href="#hotkeys">Hotkeys</a>
+        <a class="cta" href="#download">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div class="wrap">
+        <div class="label">For presenters, speakers &amp; creators</div>
+        <h1>Read your script. <em>Keep your eyes on the lens.</em></h1>
+        <p class="lede">A quiet, focused teleprompter for your desktop. Smooth scroll, one highlighted line to follow, and a window that floats over everything else.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#download" id="primary-dl">Download free</a>
+          <a class="btn btn-ghost" href="#features">See how it works</a>
+        </div>
+        <div class="meta">v0.1.1 · Linux · macOS · Windows · MIT licensed</div>
+
+        <div class="stage reveal" id="stage" role="region" aria-label="Interactive teleprompter demo">
+          <div class="stage-bar" id="stage-bar">
+            <div class="left"><span class="dot"></span><span>Teleprompter</span><span class="muted">demo.md</span></div>
+            <div class="air" id="air-label">Air</div>
+          </div>
+          <div class="viewport" id="viewport" tabindex="0" aria-label="Press space or click to start and pause the demo">
+            <div class="scroller" id="scroller"></div>
+            <div class="guide"></div>
+            <div class="rail"><i id="rail-dot"></i></div>
+          </div>
+          <div class="hint">Tap to read <kbd>Space</kbd></div>
+        </div>
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="label">Built for the moment you go live</div>
+          <h2>Everything you need, <em>nothing that pulls focus.</em></h2>
+          <p>Designed around one idea: you should always know exactly which line to read next — without anyone noticing you're reading.</p>
+        </div>
+        <div class="grid reveal">
+          <div class="cell">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+            <h3>One line in focus</h3>
+            <p>The line you should be reading glows in amber at the center. Everything else fades back, so your eyes never hunt.</p>
+          </div>
+          <div class="cell">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M6 15l6 6 6-6"/></svg></div>
+            <h3>Pixel-smooth scroll</h3>
+            <p>Continuous motion, not line-by-line jumps. Nudge the speed with the arrow keys while you talk.</p>
+          </div>
+          <div class="cell">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg></div>
+            <h3>Floats over your slides</h3>
+            <p>Transparent, frameless, always on top — at three levels. Park it over your deck or right under the webcam.</p>
+          </div>
+          <div class="cell">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v16M15 4v16M4 9h16M4 15h16" opacity=".4"/><path d="M5 5l14 14"/></svg></div>
+            <h3>Click-through &amp; mirror</h3>
+            <p>Let the mouse pass straight through to the app underneath, or flip the text for a beam-splitter rig.</p>
+          </div>
+          <div class="cell">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></div>
+            <h3>A studio of controls</h3>
+            <p>Speed, size, weight, line height, tracking, text and highlight colour, backdrop and opacity — remembered next launch.</p>
+          </div>
+          <div class="cell">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg></div>
+            <h3>Offline dictation</h3>
+            <p>Speak your script into the editor in Spanish or English. Recognition runs on your machine — no cloud, no account.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screens">
+      <div class="wrap shots">
+        <div class="shot reveal">
+          <div class="shot-text">
+            <div class="label">01 · Write</div>
+            <h3>A calm editor for your script.</h3>
+            <p>Open a <span class="mono">.txt</span> or <span class="mono">.md</span>, or start fresh. Word count and reading time update as you type, and <kbd>Ctrl S</kbd> saves right back to the file. Markdown renders formatted when you read: headings, bold, lists and quotes.</p>
+          </div>
+          <figure><img src="assets/editor.webp" width="1600" height="900" alt="The Teleprompter editor showing a script in a serif font over a purple-to-teal gradient" loading="lazy" /></figure>
+        </div>
+        <div class="shot reveal">
+          <div class="shot-text">
+            <div class="label">02 · Go on air</div>
+            <h3>Hit Space. A countdown, then you're live.</h3>
+            <p>Newsreader, an editorial serif built for reading at distance, moves you forward without drawing attention to itself. A glowing rail on the right shows how far along you are.</p>
+          </div>
+          <figure><img src="assets/display.webp" width="1600" height="900" alt="Display mode with large text scrolling and the current lines highlighted in amber" loading="lazy" /></figure>
+        </div>
+        <div class="shot reveal">
+          <div class="shot-text">
+            <div class="label">03 · Tune</div>
+            <h3>Dial it in without stopping.</h3>
+            <p>Press <kbd>H</kbd> for the studio panel. Change speed, scale and surface on the fly — every setting, plus the window's size and position, is there when you come back.</p>
+          </div>
+          <figure><img src="assets/studio.webp" width="1600" height="900" alt="The studio panel with sliders for scroll speed, font size, weight, line height and colour swatches" loading="lazy" /></figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="dictation">
+      <div class="wrap dictate">
+        <div class="reveal">
+          <div class="label">Dictation</div>
+          <h2>Say it once. <em>Then read it back.</em></h2>
+          <p style="color:var(--paper-dim);font-size:20px;margin:0">Press <kbd>Ctrl D</kbd> in the editor and talk. Words appear at the cursor as a live preview and settle in when you pause.</p>
+          <ul class="ticks">
+            <li>Runs fully offline with an on-device Vosk model</li>
+            <li>Spanish and English</li>
+            <li>Stop mid-sentence and the half-finished phrase is kept</li>
+          </ul>
+        </div>
+        <div class="mic-card reveal" aria-hidden="true">
+          <div class="top"><span>Editor</span><span class="rec"><span class="bars"><i></i><i></i><i></i><i></i></span>Listening</span></div>
+          <span class="typed" id="dict-typed"></span><span class="partial" id="dict-partial"></span><span class="caret"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="hotkeys">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="label">Hands on the keyboard</div>
+          <h2>Drive it <em>without looking.</em></h2>
+          <p>Global shortcuts work even when another app has focus.</p>
+        </div>
+        <div class="keys reveal">
+          <div><span>Read / pause</span><span><kbd>Space</kbd></span></div>
+          <div><span>Speed ±5 px/s</span><span><kbd>↑</kbd><kbd>↓</kbd></span></div>
+          <div><span>Nudge position</span><span><kbd>←</kbd><kbd>→</kbd></span></div>
+          <div><span>Back to top</span><span><kbd>R</kbd></span></div>
+          <div><span>Studio panel</span><span><kbd>H</kbd></span></div>
+          <div><span>Back to editor</span><span><kbd>Esc</kbd></span></div>
+          <div><span>Dictate</span><span><kbd>Ctrl D</kbd></span></div>
+          <div><span>New · Open · Save</span><span><kbd>Ctrl N</kbd><kbd>Ctrl O</kbd><kbd>Ctrl S</kbd></span></div>
+          <div><span>Show / hide window <em class="mono" style="font-size:11px;color:var(--amber);font-style:normal">global</em></span><span><kbd>Ctrl Alt Space</kbd></span></div>
+          <div><span>Always on top <em class="mono" style="font-size:11px;color:var(--amber);font-style:normal">global</em></span><span><kbd>Ctrl Alt P</kbd></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="download">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div class="label">Download · v0.1.1</div>
+          <h2>Free, open source, <em>yours.</em></h2>
+          <p>No account, no telemetry, no subscription. MIT licensed.</p>
+        </div>
+        <div class="dl-grid reveal">
+          <div class="dl" data-os="linux">
+            <div class="label">Linux</div>
+            <h3>Linux</h3>
+            <div class="req">x86_64 · Ubuntu, Debian, Fedora &amp; more</div>
+            <a class="file" href="downloads/Teleprompter-0.1.1-linux-x86_64.AppImage" download><span>AppImage</span><small>117 MB</small></a>
+            <a class="file" href="downloads/Teleprompter-0.1.1-linux-amd64.deb" download><span>.deb</span><small>79 MB</small></a>
+          </div>
+          <div class="dl" data-os="mac">
+            <div class="label">macOS</div>
+            <h3>macOS</h3>
+            <div class="req">Apple silicon &amp; Intel</div>
+            <div class="soon">Installer coming soon.<br />Build it now with <code>npm run build:mac</code></div>
+          </div>
+          <div class="dl" data-os="win">
+            <div class="label">Windows</div>
+            <h3>Windows</h3>
+            <div class="req">Windows 10 / 11 · x64</div>
+            <div class="soon">Installer coming soon.<br />Build it now with <code>npm run build:win</code></div>
+          </div>
+        </div>
+        <p class="note reveal">AppImage: make it executable with <code>chmod +x Teleprompter-*.AppImage</code>, then run it. For the .deb: <code>sudo apt install ./Teleprompter-0.1.1-linux-amd64.deb</code></p>
+      </div>
+    </section>
+
+    <section class="closing">
+      <div class="wrap reveal">
+        <div class="label">Ready when you are</div>
+        <h2>Look up. <em>Speak.</em> Let the words come to you.</h2>
+        <div class="actions"><a class="btn btn-primary" href="#download">Download Teleprompter</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© 2026 Gustavo Azambuja · <a href="https://sandboxlabs.uk">Sandbox Labs</a></span>
+      <span><a href="mailto:support@sandboxlabs.uk">support@sandboxlabs.uk</a> · MIT License</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // ---------- reveal on scroll ----------
+      var els = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window && !reduce) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.05, rootMargin: "0px 0px -40px 0px" });
+        els.forEach(function (el) { io.observe(el); });
+      } else {
+        els.forEach(function (el) { el.classList.add('in'); });
+      }
+
+      // ---------- live prompter demo ----------
+      var script = 'Good evening, and thank you for being here. Tonight I want to talk about something simple: looking people in the eye. When you read from a page, your audience watches the top of your head. When you read from here, they see you. The line you need is always right in the middle, glowing softly. The rest waits its turn. Press space to pause whenever you like, and use the arrow keys to find your pace. Then look up, take a breath, and just speak.';
+      var stage = document.getElementById('stage');
+      var bar = document.getElementById('stage-bar');
+      var airLabel = document.getElementById('air-label');
+      var viewport = document.getElementById('viewport');
+      var scroller = document.getElementById('scroller');
+      var railDot = document.getElementById('rail-dot');
+      var lines = [];
+
+      function layout() {
+        // wrap words into lines that fit the scroller width
+        scroller.innerHTML = '';
+        var probe = document.createElement('p');
+        probe.style.visibility = 'hidden';
+        probe.style.whiteSpace = 'nowrap';
+        probe.style.display = 'inline-block';
+        scroller.appendChild(probe);
+        var style = getComputedStyle(scroller);
+        var max = scroller.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 20;
+        var words = script.split(' '), cur = '', out = [];
+        words.forEach(function (w) {
+          var test = cur ? cur + ' ' + w : w;
+          probe.textContent = test;
+          if (probe.offsetWidth > max && cur) { out.push(cur); cur = w; } else { cur = test; }
+        });
+        if (cur) out.push(cur);
+        scroller.innerHTML = '';
+        lines = out.map(function (t) { var p = document.createElement('p'); p.textContent = t; scroller.appendChild(p); return p; });
+      }
+
+      var pos = 0, playing = false, last = 0, speed = 38;
+      function lineH() { return lines[0] ? lines[0].offsetHeight : 60; }
+      function render() {
+        var lh = lineH();
+        var offset = viewport.clientHeight / 2 - lh / 2;
+        scroller.style.transform = 'translate3d(0,' + (offset - pos) + 'px,0)';
+        var idx = Math.round(pos / lh);
+        for (var i = 0; i < lines.length; i++) {
+          lines[i].className = i === idx ? 'on' : (Math.abs(i - idx) === 1 ? 'near' : '');
+        }
+        var total = (lines.length - 1) * lh;
+        var rail = railDot.parentNode.clientHeight - 8;
+        railDot.style.top = (total ? Math.min(1, pos / total) * rail : 0) + 'px';
+      }
+      function tick(t) {
+        if (!playing) return;
+        var dt = last ? (t - last) / 1000 : 0; last = t;
+        pos += speed * dt;
+        var total = (lines.length - 1) * lineH();
+        if (pos >= total + lineH() * 1.5) pos = -lineH() * 0.5; // loop the demo
+        render();
+        requestAnimationFrame(tick);
+      }
+      function setPlaying(v) {
+        playing = v; last = 0;
+        stage.classList.toggle('playing', v);
+        bar.classList.toggle('live', v);
+        airLabel.textContent = v ? 'On air' : 'Air';
+        if (v) requestAnimationFrame(tick);
+      }
+      viewport.addEventListener('click', function () { setPlaying(!playing); });
+      viewport.addEventListener('keydown', function (e) {
+        if (e.code === 'Space') { e.preventDefault(); setPlaying(!playing); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); speed = Math.min(120, speed + 8); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); speed = Math.max(10, speed - 8); }
+        else if (e.key === 'r' || e.key === 'R') { pos = 0; render(); }
+      });
+
+      layout(); render();
+      var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { layout(); render(); }, 120); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(); render(); });
+
+      // autoplay once the demo is on screen
+      if (!reduce && 'IntersectionObserver' in window) {
+        var started = false;
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting && !started) { started = true; setTimeout(function () { setPlaying(true); }, 900); }
+            else if (!e.isIntersecting && playing) { setPlaying(false); started = false; }
+          });
+        }, { threshold: 0.5 }).observe(stage);
+      }
+
+      // ---------- dictation demo ----------
+      var phrases = ['Welcome, everyone. ', 'Today I want to show you ', 'how to read a script ', 'while looking at the camera.'];
+      var typedEl = document.getElementById('dict-typed');
+      var partialEl = document.getElementById('dict-partial');
+      if (reduce) { typedEl.textContent = phrases.join(''); return; }
+      var pi = 0, wi = 0;
+      function dictate() {
+        if (pi >= phrases.length) {
+          setTimeout(function () { typedEl.textContent = ''; partialEl.textContent = ''; pi = 0; wi = 0; dictate(); }, 3200);
+          return;
+        }
+        var words = phrases[pi].trim().split(' ');
+        if (wi < words.length) {
+          wi++;
+          partialEl.textContent = words.slice(0, wi).join(' ');
+          setTimeout(dictate, 260 + Math.random() * 180);
+        } else {
+          setTimeout(function () {
+            typedEl.textContent += phrases[pi];
+            partialEl.textContent = '';
+            pi++; wi = 0;
+            setTimeout(dictate, 500);
+          }, 420);
+        }
+      }
+      setTimeout(dictate, 800);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+@import '@fontsource-variable/newsreader/index.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Theme channels ('r g b'), overwritten at runtime from the active theme/colors. */
+  --paper: 245 241 234;
+  --accent: 228 184 96;
+  --ink: 10 11 13;
+  --spoken: 125 211 192;
+
+  --text: rgb(var(--paper));
+  --text-dim: rgb(var(--paper) / 0.55);
+  --text-muted: rgb(var(--paper) / 0.32);
+  --bg: rgb(var(--ink));
+  --bg-glass: rgb(var(--ink) / 0.82);
+  --bg-panel: rgb(var(--ink) / 0.92);
+  --highlight: rgb(var(--accent));
+  --highlight-glow: rgb(var(--accent) / 0.18);
+  --cyan: rgb(var(--spoken));
+  --border: rgb(var(--paper) / 0.08);
+  --border-strong: rgb(var(--paper) / 0.16);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: transparent;
+}
+
+input, textarea, button {
+  user-select: auto;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: rgb(var(--paper) / 0.12);
+  border-radius: 999px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  width: 14px;
+  background: var(--highlight);
+  border-radius: 999px;
+  margin-top: -6px;
+  box-shadow: 0 0 0 4px rgb(var(--accent) / 0.12), 0 0 12px rgb(var(--accent) / 0.4);
+  transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 6px rgb(var(--accent) / 0.18), 0 0 16px rgb(var(--accent) / 0.55);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: rgb(var(--paper) / 0.12);
+  border-radius: 999px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  background: var(--highlight);
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 0 0 4px rgb(var(--accent) / 0.12), 0 0 12px rgb(var(--accent) / 0.4);
+}
+
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: 1px solid rgb(var(--paper) / 0.18); border-radius: 6px; }
+input[type="color"]::-moz-color-swatch { border: 1px solid rgb(var(--paper) / 0.18); border-radius: 6px; }
+
+textarea {
+  background: transparent;
+  border: none;
+  resize: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'Newsreader Variable', Georgia, serif;
+  font-weight: 400;
+  line-height: 1.5;
+  caret-color: var(--highlight);
+}
+
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+button {
+  cursor: pointer;
+  background: transparent;
+  /* Not `none`: that sets border-style: none and zeroes Tailwind's `border` width. */
+  border: 0 solid;
+  color: var(--text);
+  font-family: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+.fade-top, .fade-bottom {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+.fade-top {
+  top: 0;
+  height: 30%;
+  background: linear-gradient(to bottom, var(--bg) 0%, transparent 100%);
+}
+.fade-bottom {
+  bottom: 0;
+  height: 30%;
+  background: linear-gradient(to top, var(--bg) 0%, transparent 100%);
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.animate-pulse-soft { animation: pulse-soft 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+@keyframes led-blink {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.animate-led-blink { animation: led-blink 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+.tick {
+  width: 18px;
+  height: 1px;
+  background: rgb(var(--accent) / 0.5);
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeout {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

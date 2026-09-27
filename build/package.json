@@ -1,0 +1,8 @@
+{
+  "name": "Teleprompter",
+  "version": "0.1.0",
+  "description": "Cross-platform teleprompter for presentations",
+  "main": "out/main/index.js",
+  "author": "Gustavo Azambuja",
+  "license": "MIT"
+}

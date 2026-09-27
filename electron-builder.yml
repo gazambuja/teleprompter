@@ -1,0 +1,48 @@
+appId: com.azambuja.teleprompter
+productName: Teleprompter
+copyright: Copyright © 2026 Gustavo Azambuja
+directories:
+  output: release/${version}
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+  - '!**/*.d.ts'
+asarUnpack:
+  - resources/**
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Teleprompter
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  category: public.app-category.productivity
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Office
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
+  desktop:
+    Name: Teleprompter
+    Comment: Cross-platform teleprompter for presenters
+    Categories: Office;Utility;
+    Terminal: false
+deb:
+  afterInstall: build/linux/after-install.sh
+  afterRemove: build/linux/after-remove.sh
+publish: null

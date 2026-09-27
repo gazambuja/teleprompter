@@ -1,0 +1,57 @@
+{
+  "name": "teleprompter",
+  "version": "0.1.1",
+  "description": "A cross-platform teleprompter app for presentations",
+  "main": "out/main/index.js",
+  "author": {
+    "name": "Gustavo Azambuja",
+    "email": "support@sandboxlabs.uk"
+  },
+  "homepage": "https://teleprompter.sandboxlabs.uk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gazambuja/teleprompter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gazambuja/teleprompter/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "NO_SANDBOX=1 electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux"
+  },
+  "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.1.0",
+    "@fontsource-variable/newsreader": "^5.1.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tar": "^7.5.22",
+    "unzipper": "^0.12.5",
+    "vosk-browser": "^0.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/unzipper": "^0.10.11",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.20",
+    "electron": "^33.0.2",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.0.0",
+    "postcss": "^8.4.49",
+    "puppeteer": "^25.12.0",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.1"
+  }
+}
