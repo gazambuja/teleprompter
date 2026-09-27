@@ -74,6 +74,7 @@ jobs:
 
       - name: Verify macOS app
         if: runner.os == 'macOS'
+        timeout-minutes: 5
         run: |
           set -euo pipefail
           for dmg in release/*/*.dmg; do
@@ -89,10 +90,11 @@ jobs:
               "$app/Contents/MacOS/Teleprompter" > launch.log 2>&1 & pid=$!
               sleep 15
               if ! kill -0 "$pid" 2>/dev/null; then cat launch.log; echo "app exited early"; exit 1; fi
-              kill "$pid"; wait "$pid" 2>/dev/null || true
               echo "launched OK"
+              pkill -9 -f "$mnt/Teleprompter.app" || true
+              sleep 2
             fi
-            hdiutil detach "$mnt" >/dev/null
+            hdiutil detach "$mnt" -force >/dev/null
             echo "::endgroup::"
           done
 
